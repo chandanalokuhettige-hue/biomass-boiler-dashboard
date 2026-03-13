@@ -144,17 +144,34 @@ export default function BiomassBoilerDashboard() {
       (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          setEspConnected(true);
           setEspData(data);
         }
       },
       (error) => {
         console.error("Firebase read error:", error);
-        setEspConnected(false);
       }
     );
     return () => unsubscribe();
   }, []);
+
+  // Monitor connection health based on serverTime
+  useEffect(() => {
+    const checkInterval = setInterval(() => {
+      if (espData && espData.serverTime) {
+        // Firebase SERVER_TIMESTAMP is in milliseconds. 
+        // We calculate if it hasn't changed in the last 10 seconds.
+        // Actually, better: if the time difference between NOW and serverTime is too high.
+        // But local clock and server clock might drift. 
+        // Best approach: If serverTime hasn't updated for two cycles of onValue.
+        // Or simply: if (Date.now() - espData.serverTime > 10000)
+        const age = Date.now() - espData.serverTime;
+        setEspConnected(age < 10000); 
+      } else {
+        setEspConnected(false);
+      }
+    }, 2000);
+    return () => clearInterval(checkInterval);
+  }, [espData]);
 
   // Seed history on mount
   useEffect(() => {
