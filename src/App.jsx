@@ -145,6 +145,16 @@ export default function BiomassBoilerDashboard() {
         const data = snapshot.val();
         if (data) {
           setEspData(data);
+          
+          // FAST UPDATE: Update sensors immediately when real data arrives
+          setSensors((prev) => {
+            const next = { ...prev };
+            if (data.temperature !== undefined) next.ambientTemp = data.temperature;
+            if (data.humidity !== undefined) next.humidity = data.humidity;
+            if (data.gasValue !== undefined) next.coPpm = data.gasValue;
+            if (data.flowRate !== undefined) next.pulseFrequency = data.flowRate * 7.5;
+            return next;
+          });
         }
       },
       (error) => {
@@ -192,40 +202,26 @@ export default function BiomassBoilerDashboard() {
     setHistory(seed);
   }, []);
 
-  // -------- Merge ESP32 data with simulated data every 2s --------
+  // -------- Background simulation for non-live fields --------
   useEffect(() => {
     const id = setInterval(() => {
       setSensors((prev) => {
-        // Build next simulated state for fields without real sensors
+        // Build next simulated state
         const next = buildNextSensorState(prev);
+        
+        // Safety for water temperatures
         if (next.waterOutTemp < next.waterInTemp + 5) {
           next.waterOutTemp = next.waterInTemp + 5;
         }
 
-        // Overwrite with real ESP32 data (only available sensor fields)
-        if (espData) {
-          if (espData.temperature !== undefined) {
-            next.ambientTemp = espData.temperature;
-          }
-          if (espData.humidity !== undefined) {
-            next.humidity = espData.humidity;
-          }
-          if (espData.gasValue !== undefined) {
-            next.coPpm = espData.gasValue;
-          }
-          if (espData.flowRate !== undefined) {
-            // flowRate from ESP32 is already in L/min
-            // Dashboard uses pulseFrequency to calculate flowRate via / 7.5
-            // So we reverse it: pulseFrequency = flowRate * 7.5
-            next.pulseFrequency = espData.flowRate * 7.5;
-          }
-        }
-
+        // IMPORTANT: We do NOT overwrite here anymore. 
+        // The ESP data is handled Reactively in the onValue effect above.
+        // This timer only walks the simulated fields.
         return next;
       });
-    }, 2000);
+    }, 2000); // Walk every 2s for smoothness
     return () => clearInterval(id);
-  }, [espData]);
+  }, []);
 
   // Update history
   useEffect(() => {
