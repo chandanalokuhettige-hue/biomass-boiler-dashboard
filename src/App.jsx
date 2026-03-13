@@ -291,7 +291,12 @@ export default function BiomassBoilerDashboard() {
 
               <div className="mt-10 grid gap-4 md:grid-cols-3 relative z-10">
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl shadow-slate-200/20">
-                  <p className="text-sm font-bold uppercase tracking-wider text-slate-500">Overall Boiler Efficiency</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold uppercase tracking-wider text-slate-500">Overall Boiler Efficiency</p>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${hasEspData ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {hasEspData ? 'CALC (LIVE)' : 'SIMULATED'}
+                    </span>
+                  </div>
                   <div className="mt-4 flex items-end gap-2">
                     <span className="text-6xl font-black tracking-tighter text-slate-900">{metrics.efficiency}</span>
                     <span className="pb-2 text-xl font-bold text-slate-500">%</span>
@@ -299,14 +304,20 @@ export default function BiomassBoilerDashboard() {
                   <Progress value={metrics.efficiency} className="mt-6 h-3 bg-slate-100 shadow-inner" />
                 </div>
                 <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6">
-                  <p className="text-sm font-bold uppercase tracking-wider text-rose-500">Total Losses</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold uppercase tracking-wider text-rose-500">Total Losses</p>
+                    {hasEspData && <span className="text-[10px] font-bold text-rose-600 uppercase">Partially Live</span>}
+                  </div>
                   <div className="mt-4 flex items-end gap-2 text-rose-900">
                     <span className="text-6xl font-black tracking-tighter">{metrics.totalLosses}</span>
                     <span className="pb-2 text-xl font-bold text-rose-500">%</span>
                   </div>
                 </div>
                 <div className="rounded-3xl border border-emerald-500 bg-gradient-to-br from-emerald-400 to-emerald-500 p-6 text-emerald-950 shadow-emerald-500/30 shadow-xl">
-                  <p className="text-sm font-bold uppercase tracking-wider opacity-90 text-emerald-900">Useful Heat Output</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold uppercase tracking-wider opacity-90 text-emerald-900">Useful Heat Output</p>
+                    {hasEspData && <Badge className="bg-white/20 text-white border-white/30 text-[10px]">LIVE FLOW</Badge>}
+                  </div>
                   <div className="mt-4 flex items-end gap-2 text-white">
                     <span className="text-6xl font-black tracking-tighter drop-shadow-sm">{metrics.usefulHeatOutputKW}</span>
                     <span className="pb-2 text-xl font-bold opacity-90">kW</span>
